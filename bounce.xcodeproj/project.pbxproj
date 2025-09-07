@@ -29,20 +29,42 @@
 		A11C82A72E6D1184002F7615 /* bounceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = bounceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A11C82DE2E6D292B002F7615 /* Exceptions for "iOS" folder in "bounce" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				bounceTests/bounceTests.swift,
+				bounceUITests/bounceUITests.swift,
+				bounceUITests/bounceUITestsLaunchTests.swift,
+			);
+			target = A11C828C2E6D1181002F7615 /* bounce */;
+		};
+		A11C82DF2E6D292B002F7615 /* Exceptions for "iOS" folder in "bounceTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				bounceTests/bounceTests.swift,
+			);
+			target = A11C829C2E6D1184002F7615 /* bounceTests */;
+		};
+		A11C82E52E6D292D002F7615 /* Exceptions for "iOS" folder in "bounceUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				bounceUITests/bounceUITests.swift,
+				bounceUITests/bounceUITestsLaunchTests.swift,
+			);
+			target = A11C82A62E6D1184002F7615 /* bounceUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A11C828F2E6D1181002F7615 /* bounce */ = {
+		A11C82C72E6D291A002F7615 /* iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = bounce;
-			sourceTree = "<group>";
-		};
-		A11C82A02E6D1184002F7615 /* bounceTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = bounceTests;
-			sourceTree = "<group>";
-		};
-		A11C82AA2E6D1184002F7615 /* bounceUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = bounceUITests;
+			exceptions = (
+				A11C82DE2E6D292B002F7615 /* Exceptions for "iOS" folder in "bounce" target */,
+				A11C82DF2E6D292B002F7615 /* Exceptions for "iOS" folder in "bounceTests" target */,
+				A11C82E52E6D292D002F7615 /* Exceptions for "iOS" folder in "bounceUITests" target */,
+			);
+			path = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +97,7 @@
 		A11C82842E6D1180002F7615 = {
 			isa = PBXGroup;
 			children = (
-				A11C828F2E6D1181002F7615 /* bounce */,
-				A11C82A02E6D1184002F7615 /* bounceTests */,
-				A11C82AA2E6D1184002F7615 /* bounceUITests */,
+				A11C82C72E6D291A002F7615 /* iOS */,
 				A11C828E2E6D1181002F7615 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,7 +128,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A11C828F2E6D1181002F7615 /* bounce */,
+				A11C82C72E6D291A002F7615 /* iOS */,
 			);
 			name = bounce;
 			packageProductDependencies = (
@@ -130,9 +150,6 @@
 			dependencies = (
 				A11C829F2E6D1184002F7615 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				A11C82A02E6D1184002F7615 /* bounceTests */,
-			);
 			name = bounceTests;
 			packageProductDependencies = (
 			);
@@ -152,9 +169,6 @@
 			);
 			dependencies = (
 				A11C82A92E6D1184002F7615 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				A11C82AA2E6D1184002F7615 /* bounceUITests */,
 			);
 			name = bounceUITests;
 			packageProductDependencies = (
