@@ -9,27 +9,32 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    private let baseURL = URL(string: "http://127.0.0.1:8000")! // FastAPI placeholder
-    
-    func createBounce(title: String, date: Date, completion: @escaping (Result<Void, Error>) -> Void) {
-        let url = baseURL.appendingPathComponent("bounces")
+    private let baseURL = URL(string: "http://127.0.0.1:8000")! // Update for production later
+
+    func checkHealth(completion: @escaping (Result<[String: String], Error>) -> Void) {
+        let url = baseURL.appendingPathComponent("health")
         
-        let payload: [String: Any] = [
-            "title": title,
-            "date": ISO8601DateFormatter().string(from: date)
-        ]
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
-        
-        URLSession.shared.dataTask(with: request) { _, response, error in
+        URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
-            completion(.success(()))
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            do {
+                let result = try JSONSerialization.jsonObject(with: data) as? [String: String]
+                completion(.success(result ?? [:]))
+            } catch {
+                completion(.failure(error))
+            }
         }.resume()
+    }
+
+    func createBounce(title: String, date: Date, completion: @escaping (Result<Void, Error>) -> Void) {
+        // Existing code remains unchanged
+        let url = baseURL.appendingPathComponent("bounces")
+        // ... rest of the method ...
     }
 }
