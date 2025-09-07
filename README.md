@@ -1,13 +1,16 @@
+## 📂 Project Structure
+
 Bounce/
-├── BounceApp.swift
-├── ContentView.swift   // Entry point -> HomeView
+├── BounceApp.swift # App entry point
+├── ContentView.swift # Initial entry view -> HomeView
 │
-├── Views/
-│   ├── HomeView.swift
-│   ├── CreateBounceView.swift
+├── Views/ # UI Screens
+│ ├── HomeView.swift
+│ ├── CreateBounceView.swift
 │
-├── Services/
-│   └── APIService.swift
+├── Services/ # Networking & API calls
+│ └── APIService.swift
 │
-├── Models/
-│   └── Bounce.swift
+├── Models/ # Data models
+│ └── Bounce.swift
+
