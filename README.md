@@ -1,17 +1,18 @@
 ## 📂 Project Structure
 
 - `Bounce/`
-  - `BounceApp.swift` # App entry point
+  - `Models/` # Data models
+  - `Preview Content/`
+  - `Services/` # Networking & API calls
+    - `APIService.swift`
   - `Views/` # UI screens
     - `HomeView.swift` #HomeScreen
     - `CreateBounceView.swift`#CreateBounceScreen
-  - `Services/` # Networking & API calls
-    - `APIService.swift`
-  - `Models/` # Data models
-    - `Bounce.swift`
+  - `BounceApp.swift` # App entry point
 - `BounceTests/`
 - `BounceUITests/`
-- 
+- `README`
+
 
 
 
