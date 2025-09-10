@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 app = FastAPI()
 
@@ -27,6 +27,11 @@ async def create_bounce(bounce: BounceCreate):
         return {"message": "Bounce created successfully", "bounce": bounce_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create bounce: {str(e)}")
+
+@app.get("/bounces", response_model=List[BounceCreate])
+async def get_bounces():
+    return bounces
+
 
 
 
