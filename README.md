@@ -31,5 +31,9 @@ INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 INFO:     Started reloader process [2505] using WatchFiles
 INFO:     Started server process [2507]
 
+Create Bounce
+#Just using a in memory data base for  now while running. will update to persistent soon.
+
+
 
 
