@@ -24,9 +24,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A11C83272E6D2D76002F7615 /* bounce.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = bounce.app; path = "/Users/camgoodhue/Coding/bounce/iOS/build/Debug-iphoneos/bounce.app"; sourceTree = "<absolute>"; };
-		A11C83282E6D2D76002F7615 /* bounceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = bounceUITests.xctest; path = "/Users/camgoodhue/Coding/bounce/iOS/build/Debug-iphoneos/bounceUITests-Runner.app/PlugIns/bounceUITests.xctest"; sourceTree = "<absolute>"; };
-		A11C83292E6D2D76002F7615 /* bounceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = bounceTests.xctest; path = "/Users/camgoodhue/Coding/bounce/iOS/build/Debug-iphoneos/bounce.app/PlugIns/bounceTests.xctest"; sourceTree = "<absolute>"; };
+		A11C83452E6D3338002F7615 /* bounce.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = bounce.app; path = "/Users/camgoodhue/Coding/bounce/iOS/build/Debug-iphoneos/bounce.app"; sourceTree = "<absolute>"; };
+		A11C83462E6D3338002F7615 /* bounceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = bounceUITests.xctest; path = "/Users/camgoodhue/Coding/bounce/iOS/build/Debug-iphoneos/bounceUITests-Runner.app/PlugIns/bounceUITests.xctest"; sourceTree = "<absolute>"; };
+		A11C83472E6D3338002F7615 /* bounceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = bounceTests.xctest; path = "/Users/camgoodhue/Coding/bounce/iOS/build/Debug-iphoneos/bounce.app/PlugIns/bounceTests.xctest"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -146,7 +146,7 @@
 			packageProductDependencies = (
 			);
 			productName = bounce;
-			productReference = A11C83272E6D2D76002F7615 /* bounce.app */;
+			productReference = A11C83452E6D3338002F7615 /* bounce.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A11C829C2E6D1184002F7615 /* bounceTests */ = {
@@ -166,7 +166,7 @@
 			packageProductDependencies = (
 			);
 			productName = bounceTests;
-			productReference = A11C83292E6D2D76002F7615 /* bounceTests.xctest */;
+			productReference = A11C83472E6D3338002F7615 /* bounceTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		A11C82A62E6D1184002F7615 /* bounceUITests */ = {
@@ -186,7 +186,7 @@
 			packageProductDependencies = (
 			);
 			productName = bounceUITests;
-			productReference = A11C83282E6D2D76002F7615 /* bounceUITests.xctest */;
+			productReference = A11C83462E6D3338002F7615 /* bounceUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */

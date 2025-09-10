@@ -11,6 +11,7 @@ import SwiftUI
 struct CreateBounceView: View {
     @State private var title: String = ""
     @State private var date = Date()
+    @State private var friend: String = ""
     @State private var isSubmitting = false
     @State private var message: String?
 
@@ -20,11 +21,12 @@ struct CreateBounceView: View {
                 Section(header: Text("Details")) {
                     TextField("What's the plan?", text: $title)
                     DatePicker("When", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                    TextField("Invite a friend", text: $friend) // New TextField for friend
                 }
                 
                 if let message = message {
                     Text(message)
-                        .foregroundColor(.green)
+                        .foregroundColor(message.contains("Error") ? .red : .green)
                 }
                 
                 Button(action: submitBounce) {
@@ -32,6 +34,11 @@ struct CreateBounceView: View {
                         ProgressView()
                     } else {
                         Text("Send Bounce")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(title.isEmpty || isSubmitting ? Color.gray : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                     }
                 }
                 .disabled(title.isEmpty || isSubmitting)
