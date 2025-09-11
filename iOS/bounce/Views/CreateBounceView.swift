@@ -49,7 +49,7 @@ struct CreateBounceView: View {
     
     private func submitBounce() {
         isSubmitting = true
-        APIService.shared.createBounce(title: title, date: date) { result in
+        APIService.shared.createBounce(title: title, date: date, friend: friend) { result in
             DispatchQueue.main.async {
                 isSubmitting = false
                 switch result {

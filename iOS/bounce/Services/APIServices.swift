@@ -32,7 +32,7 @@ class APIService {
         }.resume()
     }
     
-    func createBounce(title: String, date: Date, completion: @escaping (Result<Void, Error>) -> Void) {
+    func createBounce(title: String, date: Date, friend: String, completion: @escaping (Result<Void, Error>) -> Void) {
         let url = baseURL.appendingPathComponent("bounces")
         
         var request = URLRequest(url: url)
@@ -46,7 +46,8 @@ class APIService {
         // Create the request body
         let body: [String: Any] = [
             "title": title,
-            "date": dateString
+            "date": dateString,
+            "friend": friend
         ]
         
         do {
