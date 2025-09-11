@@ -1,14 +1,16 @@
 from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, Session
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 from contextlib import asynccontextmanager
+from enum import Enum
 
 # Database setup
-engine = create_engine("sqlite:///bounces.db")
+engine = create_engine("sqlite:///bounces.db", connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # Enum definitions
@@ -39,7 +41,7 @@ class Bounce(Base):
     title = Column(String)
     date = Column(DateTime)
     creator_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(Enum(BounceStatus, native_enum=False), default=BounceStatus.pending)
+    status = Column(SAEnum(BounceStatus, native_enum=False), default=BounceStatus.pending)
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -51,7 +53,7 @@ class BounceInvitee(Base):
     bounce_id = Column(Integer, ForeignKey("bounces.id"))
     invitee_id = Column(Integer, ForeignKey("users.id"))
     priority = Column(Integer)
-    status = Column(Enum(InviteStatus, native_enum=False), default=InviteStatus.pending)
+    status = Column(SAEnum(InviteStatus, native_enum=False), default=InviteStatus.pending)
     invited_at = Column(DateTime, nullable=True)
     responded_at = Column(DateTime, nullable=True)
     bounce = relationship("Bounce", back_populates="invitees")
@@ -77,18 +79,18 @@ class BounceResponse(BaseModel):
 
 # Dependency
 def get_db():
-    db = sessionmaker(autocommit=False, autoflush=False, bind=engine)()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+# Lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
     # Pre-populate users
-    db = sessionmaker(bind=engine)()
     if not db.query(User).all():
         users = [
             User(username="cam", full_name="Cam Goodhue"),
@@ -117,6 +119,7 @@ async def create_bounce(bounce: BounceCreate, db: Session = Depends(get_db)):
     )
     db.add(db_bounce)
     db.commit()
+    db.refresh(db_bounce)
     
     # Add invitees
     for invitee in bounce.invitees:
@@ -131,6 +134,8 @@ async def create_bounce(bounce: BounceCreate, db: Session = Depends(get_db)):
         )
         db.add(db_invitee)
     
+    db.commit()
+    
     # Activate first priority
     first_invitee = db.query(BounceInvitee).filter(
         BounceInvitee.bounce_id == db_bounce.id
@@ -140,9 +145,8 @@ async def create_bounce(bounce: BounceCreate, db: Session = Depends(get_db)):
         first_invitee.invited_at = datetime.utcnow()
         db_bounce.current_invitee_id = first_invitee.invitee_id
         db_bounce.status = BounceStatus.active
-    db.commit()
+        db.commit()
     
-    # Refresh and return
     db.refresh(db_bounce)
     return db_bounce
 
@@ -213,4 +217,3 @@ async def get_bounce(bounce_id: int, db: Session = Depends(get_db)):
         } for i in invitees
     ]
     return bounce_dict
-
