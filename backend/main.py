@@ -7,9 +7,12 @@ from datetime import datetime
 from typing import List, Optional
 from contextlib import asynccontextmanager
 from enum import Enum
+import os
 
-# Database setup
-engine = create_engine("sqlite:///bounces.db", connect_args={"check_same_thread": False})
+# Database setup (always save next to main.py)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "bounces.db")
+engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -45,7 +48,7 @@ class Bounce(Base):
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    invitees = relationship("BounceInvitee", back_populates="bounce")
+    invitees = relationship("BounceInvitee", back_populates="bounce", cascade="all, delete-orphan")
 
 class BounceInvitee(Base):
     __tablename__ = "bounce_invitees"
@@ -63,6 +66,16 @@ class InviteeCreate(BaseModel):
     user_id: int
     priority: int
 
+class BounceInviteeResponse(BaseModel):
+    invitee_id: int
+    priority: int
+    status: InviteStatus
+    invited_at: Optional[datetime]
+    responded_at: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
 class BounceCreate(BaseModel):
     title: str
     date: datetime
@@ -75,7 +88,10 @@ class BounceResponse(BaseModel):
     creator_id: int
     status: BounceStatus
     current_invitee_id: Optional[int]
-    invitees: List[dict]
+    invitees: List[BounceInviteeResponse]
+
+    class Config:
+        orm_mode = True
 
 # Dependency
 def get_db():
@@ -204,16 +220,4 @@ async def get_bounce(bounce_id: int, db: Session = Depends(get_db)):
     bounce = db.query(Bounce).filter(Bounce.id == bounce_id).first()
     if not bounce:
         raise HTTPException(status_code=404, detail="Bounce not found")
-    
-    invitees = db.query(BounceInvitee).filter(BounceInvitee.bounce_id == bounce_id).all()
-    bounce_dict = bounce.__dict__.copy()
-    bounce_dict["invitees"] = [
-        {
-            "invitee_id": i.invitee_id,
-            "priority": i.priority,
-            "status": i.status.value,
-            "invited_at": i.invited_at,
-            "responded_at": i.responded_at
-        } for i in invitees
-    ]
-    return bounce_dict
+    return bounce
