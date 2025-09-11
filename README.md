@@ -18,6 +18,14 @@ Not touching the ios through git, just in XCOde
 - `README`
 
 ## Local Development  
+1.Make a new environment
+```conda env create -f env.yaml```
+2.Activate the environment
+```conda activate bounce```
+3.Run poetry commands - this will create a lock file
+`poetry config virtualenvs.create false`
+`poetry install`
+
 
 
 ## API Testing
@@ -33,6 +41,7 @@ INFO:     Started server process [2507]
 
 Create Bounce
 #Just using a in memory data base for  now while running. will update to persistent soon.
+
 
 
 
