@@ -39,7 +39,7 @@ class Bounce(Base):
     title = Column(String)
     date = Column(DateTime)
     creator_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(Enum(BounceStatus), default=BounceStatus.pending)
+    status = Column(Enum(BounceStatus, native_enum=False), default=BounceStatus.pending)
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -51,7 +51,7 @@ class BounceInvitee(Base):
     bounce_id = Column(Integer, ForeignKey("bounces.id"))
     invitee_id = Column(Integer, ForeignKey("users.id"))
     priority = Column(Integer)
-    status = Column(Enum(InviteStatus), default=InviteStatus.pending)
+    status = Column(Enum(InviteStatus, native_enum=False), default=InviteStatus.pending)
     invited_at = Column(DateTime, nullable=True)
     responded_at = Column(DateTime, nullable=True)
     bounce = relationship("Bounce", back_populates="invitees")
@@ -213,3 +213,4 @@ async def get_bounce(bounce_id: int, db: Session = Depends(get_db)):
         } for i in invitees
     ]
     return bounce_dict
+
