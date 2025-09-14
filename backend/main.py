@@ -42,7 +42,6 @@ class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True)
     title = Column(String)
-    date = Column(DateTime)
     creator_id = Column(Integer, ForeignKey("users.id"))
     status = Column(SAEnum(EventStatus, native_enum=False), default=EventStatus.pending)
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -78,13 +77,11 @@ class EventInviteeResponse(BaseModel):
 
 class EventCreate(BaseModel):
     title: str
-    date: datetime
     invitees: List[InviteeCreate]
 
 class EventResponse(BaseModel):
     id: int
     title: str
-    date: datetime
     creator_id: int
     status: EventStatus
     current_invitee_id: Optional[int]
@@ -99,7 +96,6 @@ class EventResponseRequest(BaseModel):
 class EventSummary(BaseModel):
     id: int
     title: str
-    date: datetime
     creator_id: int
     status: EventStatus
     
@@ -164,7 +160,6 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     
     db_event = Event(
         title=event.title,
-        date=event.date,
         creator_id=creator.id,
         status=EventStatus.pending
     )
@@ -282,7 +277,6 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
             event=EventSummary(
                 id=invitation.event.id,
                 title=invitation.event.title,
-                date=invitation.event.date,
                 creator_id=invitation.event.creator_id,
                 status=invitation.event.status
             ),
