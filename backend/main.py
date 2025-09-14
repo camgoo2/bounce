@@ -150,6 +150,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "Hi bounce team, you are healthy"}
+
 # Endpoints
 @app.post("/events", response_model=EventResponse, status_code=201)
 async def create_event(event: EventCreate, db: Session = Depends(get_db)):
