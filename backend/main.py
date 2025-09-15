@@ -306,3 +306,19 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
         pending_invitations=pending_invitations,
         invitation_history=invitation_history
     )
+
+#DEBUG Tables
+@app.get("/debug/users")
+async def debug_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return users
+
+@app.get("/debug/events")
+async def debug_events(db: Session = Depends(get_db)):
+    events = db.query(Event).all()
+    return events
+
+@app.get("/debug/event-invitees")
+async def debug_event_invitees(db: Session = Depends(get_db)):
+    invitees = db.query(EventInvitee).all()
+    return invitees
