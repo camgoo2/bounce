@@ -174,6 +174,11 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
         if not user:
             db.rollback()
             raise HTTPException(status_code=404, detail=f"Invitee ID {invitee.user_id} not found")
+        
+        print(f"  event_id: {db_event.id}")
+        print(f"  invitee_id: {user.id}")
+        print(f"  priority: {invitee.priority}")
+
         db_invitee = EventInvitee(
             event_id=db_event.id,
             invitee_id=user.id,
