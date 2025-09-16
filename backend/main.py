@@ -77,6 +77,7 @@ class EventInviteeResponse(BaseModel):
 
 class EventCreate(BaseModel):
     title: str
+    creator_id: int  
     invitees: List[InviteeCreate]
 
 class EventResponse(BaseModel):
@@ -167,7 +168,7 @@ async def health_check():
 # Endpoints
 @app.post("/events", response_model=EventResponse, status_code=201)
 async def create_event(event: EventCreate, db: Session = Depends(get_db)):
-    creator = db.query(User).filter(User.username == "cam").first()
+    creator = db.query(User).filter(User.id == event.creator_id).first()
     if not creator:
         raise HTTPException(status_code=404, detail="Creator not found")
     
