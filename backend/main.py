@@ -345,6 +345,12 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
         invitation_history=invitation_history
     )
 
+@app.get("users/{username}")
+async def get_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    print(users)
+    return users
+
 #DEBUG Tables
 @app.get("/debug/users")
 async def debug_users(db: Session = Depends(get_db)):
