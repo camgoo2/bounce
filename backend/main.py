@@ -87,6 +87,7 @@ class EventResponse(BaseModel):
     status: EventStatus
     current_invitee_id: Optional[int]
     invitees: List[EventInviteeResponse]
+    message: str
 
     class Config:
         orm_mode = True
@@ -214,7 +215,8 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
         db.commit()
     
     db.refresh(db_event)
-    print("This is the db_event",db_event)
+    db_event.message = "Bounce sent to friends"
+    
     return db_event
 
 @app.post("/events/{event_id}/respond")
