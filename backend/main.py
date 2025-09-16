@@ -119,6 +119,19 @@ class UserInvitationsResponse(BaseModel):
     pending_invitations: List[MyInvitationResponse]
     invitation_history: List[MyInvitationResponse]
 
+# Add these to your Pydantic Models section
+class UserCreate(BaseModel):
+    username: str
+    full_name: str
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    full_name: str
+    
+    class Config:
+        orm_mode = True
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -258,6 +271,29 @@ async def get_event(event_id: int, db: Session = Depends(get_db)):
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
+
+@app.post("/users", response_model=UserResponse, status_code=201)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    # Check if username already exists
+    existing_user = db.query(User).filter(User.username == user.username).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Username '{user.username}' already exists"
+        )
+    
+    # Create new user
+    db_user = User(
+        username=user.username,
+        full_name=user.full_name
+    )
+    
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    print(f"Created new user: {db_user}")
+    return db_user
 
 @app.get("/users")
 async def get_users(db: Session = Depends(get_db)):
