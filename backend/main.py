@@ -346,10 +346,10 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
     )
 
 @app.get("users/{username}")
-async def get_users(db: Session = Depends(get_db)):
-    users = db.query(User).all()
-    print(users)
-    return users
+async def get_users_login(login_user: str, db: Session = Depends(get_db)):
+    login_user = db.query(User).filter(User.username == login_user).first()
+    print(login_user)
+    return login_user
 
 #DEBUG Tables
 @app.get("/debug/users")
