@@ -200,6 +200,7 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
         db.commit()
     
     db.refresh(db_event)
+    print("This is the db_event",db_event)
     return db_event
 
 @app.post("/events/{event_id}/respond")
