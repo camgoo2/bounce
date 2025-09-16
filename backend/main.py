@@ -345,11 +345,11 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
         invitation_history=invitation_history
     )
 
-@app.get("users/{username}")
-async def get_users_login(login_user: str, db: Session = Depends(get_db)):
-    login_user = db.query(User).filter(User.username == login_user).first()
-    print(login_user)
-    return login_user
+@app.get("/users/{username}")
+async def get_users_login(username: str, db: Session = Depends(get_db)):
+    username = db.query(User).filter(User.username == username).first()
+    print(username)
+    return username
 
 #DEBUG Tables
 @app.get("/debug/users")
