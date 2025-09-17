@@ -146,17 +146,6 @@ def get_db():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    # Pre-populate users
-    if not db.query(User).all():
-        users = [
-            User(username="cam", full_name="Cam Goodhue"),
-            User(username="paul", full_name="Paul Smith"),
-            User(username="tom", full_name="Tom Jones")
-        ]
-        db.add_all(users)
-        db.commit()
-    db.close()
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -368,3 +357,21 @@ async def debug_events(db: Session = Depends(get_db)):
 async def debug_event_invitees(db: Session = Depends(get_db)):
     invitees = db.query(EventInvitee).all()
     return invitees
+
+@app.post("/debug/clear-all-data")
+async def clear_all_data(db: Session = Depends(get_db)):
+    """
+    DANGER: This will delete ALL data from the database!
+    Use only in development.
+    """
+    try:
+        # Delete in order to respect foreign key constraints
+        db.query(EventInvitee).delete()
+        db.query(Event).delete()
+        db.query(User).delete()
+        db.commit()
+        
+        return {"message": "All data cleared and default users recreated"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error clearing data: {str(e)}")
