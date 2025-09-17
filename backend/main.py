@@ -308,6 +308,15 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
     invitation_history = []
     
     for invitation in invitations:
+        # Skip invitations where:
+        # - User hasn't been invited yet (status is still "pending")
+        # - AND they're not the current invitee
+        # - AND the event is still active
+        if (invitation.status == InviteStatus.pending and 
+            invitation.event.current_invitee_id != user_id and
+            invitation.event.status == EventStatus.active):
+            continue  # Don't show this invitation at all
+        
         invitation_data = MyInvitationResponse(
             event=EventSummary(
                 id=invitation.event.id,
