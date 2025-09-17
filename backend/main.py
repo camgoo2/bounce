@@ -134,6 +134,21 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode = True
 
+# Add this new Pydantic model for sent invitations
+class SentInvitationResponse(BaseModel):
+    event: EventSummary
+    current_invitee_username: Optional[str]
+    current_invitee_full_name: Optional[str]
+    invitees_count: int
+    
+    class Config:
+        orm_mode = True
+
+class UserSentInvitationsResponse(BaseModel):
+    user_id: int
+    username: str
+    sent_invitations: List[SentInvitationResponse]
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -350,6 +365,53 @@ async def get_users_login(username: str, db: Session = Depends(get_db)):
     username = db.query(User).filter(User.username == username).first()
     print(username)
     return username
+
+
+@app.get("/users/{user_id}/sent-invitations", response_model=UserSentInvitationsResponse)
+async def get_user_sent_invitations(user_id: int, db: Session = Depends(get_db)):
+    # Check if user exists
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all events created by this user
+    events = db.query(Event).filter(Event.creator_id == user_id).all()
+    
+    sent_invitations = []
+    
+    for event in events:
+        current_invitee_username = None
+        current_invitee_full_name = None
+        
+        # Get current invitee details if there is one
+        if event.current_invitee_id:
+            current_invitee = db.query(User).filter(User.id == event.current_invitee_id).first()
+            if current_invitee:
+                current_invitee_username = current_invitee.username
+                current_invitee_full_name = current_invitee.full_name
+        
+        # Count total invitees for this event
+        invitees_count = db.query(EventInvitee).filter(EventInvitee.event_id == event.id).count()
+        
+        sent_invitation = SentInvitationResponse(
+            event=EventSummary(
+                id=event.id,
+                title=event.title,
+                creator_id=event.creator_id,
+                status=event.status
+            ),
+            current_invitee_username=current_invitee_username,
+            current_invitee_full_name=current_invitee_full_name,
+            invitees_count=invitees_count
+        )
+        
+        sent_invitations.append(sent_invitation)
+    
+    return UserSentInvitationsResponse(
+        user_id=user.id,
+        username=user.username,
+        sent_invitations=sent_invitations
+    )
 
 #DEBUG Tables
 @app.get("/debug/users")
