@@ -62,7 +62,7 @@ class EventInvitee(Base):
 
 # Pydantic Models
 class InviteeCreate(BaseModel):
-    user_id: int
+    user_name: str
     priority: int
 
 class EventInviteeResponse(BaseModel):
@@ -184,11 +184,11 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     
     # Add invitees
     for invitee in event.invitees:
-        user = db.query(User).filter(User.id == invitee.user_id).first()
+        user = db.query(User).filter(User.username == invitee.user_name).first()
         print("I am the user\n",user)
         if not user:
             db.rollback()
-            raise HTTPException(status_code=404, detail=f"Invitee ID {invitee.user_id} not found")
+            raise HTTPException(status_code=404, detail=f"Invitee  {invitee.user_name} not found")
         
         print(f"  event_id: {db_event.id}")
         print(f"  invitee_id: {user.id}")
