@@ -371,7 +371,7 @@ async def clear_all_data(db: Session = Depends(get_db)):
         db.query(User).delete()
         db.commit()
         
-        return {"message": "All data cleared and default users recreated"}
+        return {"message": "All data cleared"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error clearing data: {str(e)}")
