@@ -17,7 +17,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # Enum definitions
-class InviteStatus(str, Enum):
+class InviteReplyStatus(str, Enum):
     pending = "pending"
     invited = "invited"
     accepted = "accepted"
@@ -56,7 +56,7 @@ class EventInvitee(Base):
     event_id = Column(Integer, ForeignKey("events.id"))
     invitee_id = Column(Integer, ForeignKey("users.id"))
     priority = Column(Integer)
-    status = Column(SAEnum(InviteStatus, native_enum=False), default=InviteStatus.pending)
+    status = Column(SAEnum(InviteReplyStatus, native_enum=False), default=InviteReplyStatus.pending)
     invited_at = Column(DateTime, nullable=True)
     responded_at = Column(DateTime, nullable=True)
     event = relationship("Event", back_populates="invitees")
@@ -69,7 +69,7 @@ class InviteeCreate(BaseModel):
 class EventInviteeResponse(BaseModel):
     invitee_id: int
     priority: int
-    status: InviteStatus
+    status: InviteReplyStatus
     invited_at: Optional[datetime]
     responded_at: Optional[datetime]
 
@@ -92,8 +92,8 @@ class EventResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class EventResponseRequest(BaseModel):
-    status: str
+class InviteReplyRequest(BaseModel):
+    status: InviteReplyStatus #Enum
 
 class EventSummary(BaseModel):
     id: int
@@ -107,7 +107,7 @@ class EventSummary(BaseModel):
 class MyInvitationResponse(BaseModel):
     event: EventSummary
     my_priority: int
-    my_status: InviteStatus
+    my_status: InviteReplyStatus
     invited_at: Optional[datetime]
     responded_at: Optional[datetime]
     is_current_invitee: bool
@@ -212,7 +212,7 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     # Activate first priority
     first_invitee = db.query(EventInvitee).filter(EventInvitee.event_id == db_event.id).order_by(EventInvitee.priority.asc()).first()
     if first_invitee:
-        first_invitee.status = InviteStatus.invited
+        first_invitee.status = InviteReplyStatus.invited
         first_invitee.invited_at = datetime.utcnow()
         db_event.current_invitee_id = first_invitee.invitee_id
         db_event.status = EventStatus.active
@@ -224,7 +224,8 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     return db_event
 
 @app.post("/events/{event_id}/respond")
-async def respond_to_event( event_id: int, invite_reply: EventResponseRequest, db: Session = Depends(get_db)):
+# Just sending the event status string only
+async def respond_to_event( event_id: int, invite_reply: InviteReplyRequest, db: Session = Depends(get_db)):
     print("event_id = ", event_id)
     print('invite_reply= ',invite_reply.status)
     event = db.query(Event).filter(Event.id == event_id).first()
@@ -239,7 +240,7 @@ async def respond_to_event( event_id: int, invite_reply: EventResponseRequest, d
     if not current_invitee:
         raise HTTPException(status_code=400, detail="No active invitee")
     
-    current_invitee.status = InviteStatus(invite_reply.status)
+    current_invitee.status = InviteReplyStatus(invite_reply.status)
     current_invitee.responded_at = datetime.utcnow()
     db.commit()
     
@@ -252,11 +253,11 @@ async def respond_to_event( event_id: int, invite_reply: EventResponseRequest, d
     elif invite_reply.status == "declined":
         next_invitee = db.query(EventInvitee).filter(
             EventInvitee.event_id == event_id,
-            EventInvitee.status == InviteStatus.pending
+            EventInvitee.status == InviteReplyStatus.pending
         ).order_by(EventInvitee.priority.asc()).first()
         
         if next_invitee:
-            next_invitee.status = InviteStatus.invited
+            next_invitee.status = InviteReplyStatus.invited
             next_invitee.invited_at = datetime.utcnow()
             event.current_invitee_id = next_invitee.invitee_id
             event.status = EventStatus.active
@@ -327,7 +328,7 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
         # - User hasn't been invited yet (status is still "pending")
         # - AND they're not the current invitee
         # - AND the event is still active
-        if (invitation.status == InviteStatus.pending and 
+        if (invitation.status == InviteReplyStatus.pending and 
             invitation.event.current_invitee_id != user_id and
             invitation.event.status == EventStatus.active):
             continue  # Don't show this invitation at all
