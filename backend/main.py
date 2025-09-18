@@ -229,6 +229,8 @@ async def respond_to_event(
     response: EventResponseRequest,
     db: Session = Depends(get_db)
 ):
+    print("event_id = ", event_id)
+    print('respone status= ',response.status)
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -237,7 +239,7 @@ async def respond_to_event(
         EventInvitee.event_id == event_id,
         EventInvitee.invitee_id == event.current_invitee_id
     ).first()
-    
+    print("current invitee= ",current_invitee)
     if not current_invitee:
         raise HTTPException(status_code=400, detail="No active invitee")
     
