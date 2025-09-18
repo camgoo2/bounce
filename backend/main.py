@@ -87,7 +87,6 @@ class EventResponse(BaseModel):
     status: EventStatus
     current_invitee_id: Optional[int]
     invitees: List[EventInviteeResponse]
-    message: str
 
     class Config:
         orm_mode = True
@@ -219,7 +218,6 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
         db.commit()
     
     db.refresh(db_event)
-    db_event.message = "Bounce sent to friends"
     
     return db_event
 
@@ -250,6 +248,7 @@ async def respond_to_event(
     if response.status == "accepted":
         event.status = EventStatus.accepted
         db.commit()
+        print("this is the event.status",event.status)
         return {"message": "Event accepted!"}
     
     elif response.status == "declined":
@@ -277,6 +276,7 @@ async def respond_to_event(
 @app.get("/events/{event_id}", response_model=EventResponse)
 async def get_event(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.id == event_id).first()
+    print("this is the event id",event.id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
