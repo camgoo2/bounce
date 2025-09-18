@@ -44,18 +44,7 @@ class Event(Base):
     title = Column(String)
     creator_id = Column(Integer, ForeignKey("users.id"))
     status = Column(SAEnum(EventStatus, native_enum=False), default=EventStatus.pending)
-    #just thinking that current_invitee_id should maybe replaced with all invitee_id as only seeing 1 in table
-#     [
-#   {
-#     "status": "active",
-#     "title": "Golf tonight",
-#     "current_invitee_id": 3,
-#     "created_at": "2025-09-18T08:31:28.589627",
-#     "creator_id": 1,
-#     "id": 1,
-#     "updated_at": "2025-09-18T08:31:28.601459"
-#   }
-# ]
+    #just thinking that current_invitee_id - This uses Foreign Key for database integrity and CRUD Update methods.
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -235,13 +224,9 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     return db_event
 
 @app.post("/events/{event_id}/respond")
-async def respond_to_event(
-    event_id: int,
-    response: EventResponseRequest,
-    db: Session = Depends(get_db)
-):
+async def respond_to_event( event_id: int, invite_reply: EventResponseRequest, db: Session = Depends(get_db)):
     print("event_id = ", event_id)
-    print('respone status= ',response.status)
+    print('invite_reply= ',invite_reply.status)
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -254,34 +239,34 @@ async def respond_to_event(
     if not current_invitee:
         raise HTTPException(status_code=400, detail="No active invitee")
     
-    current_invitee.status = InviteStatus(response.status)
+    current_invitee.status = InviteStatus(invite_reply.status)
     current_invitee.responded_at = datetime.utcnow()
     db.commit()
     
-    if response.status == "accepted":
+    if invite_reply.status == "accepted":
         event.status = EventStatus.accepted
         db.commit()
         print("this is the event.status",event.status)
         return {"message": "Event accepted!"}
     
-    # elif response.status == "declined":
-    #     next_invitee = db.query(EventInvitee).filter(
-    #         EventInvitee.event_id == event_id,
-    #         EventInvitee.status == InviteStatus.pending
-    #     ).order_by(EventInvitee.priority.asc()).first()
+    elif invite_reply.status == "declined":
+        next_invitee = db.query(EventInvitee).filter(
+            EventInvitee.event_id == event_id,
+            EventInvitee.status == InviteStatus.pending
+        ).order_by(EventInvitee.priority.asc()).first()
         
-    #     if next_invitee:
-    #         next_invitee.status = InviteStatus.invited
-    #         next_invitee.invited_at = datetime.utcnow()
-    #         event.current_invitee_id = next_invitee.invitee_id
-    #         event.status = EventStatus.active
-    #         db.commit()
-    #         return {"message": "Declined—invitation forwarded to next priority"}
-    #     else:
-    #         event.status = EventStatus.cancelled
-    #         event.current_invitee_id = None
-    #         db.commit()
-    #         return {"message": "Declined—no more priorities available"}
+        if next_invitee:
+            next_invitee.status = InviteStatus.invited
+            next_invitee.invited_at = datetime.utcnow()
+            event.current_invitee_id = next_invitee.invitee_id
+            event.status = EventStatus.active
+            db.commit()
+            return {"message": "Declined—invitation forwarded to next priority"}
+        else:
+            event.status = EventStatus.cancelled
+            event.current_invitee_id = None
+            db.commit()
+            return {"message": "Declined—no more priorities available"}
     
     db.commit()
     return {"message": "Response recorded"}
