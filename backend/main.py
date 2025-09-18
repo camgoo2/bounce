@@ -44,7 +44,18 @@ class Event(Base):
     title = Column(String)
     creator_id = Column(Integer, ForeignKey("users.id"))
     status = Column(SAEnum(EventStatus, native_enum=False), default=EventStatus.pending)
-    #just thinking that current_invitee_id should maybe replaced with all invitee_id
+    #just thinking that current_invitee_id should maybe replaced with all invitee_id as only seeing 1 in table
+#     [
+#   {
+#     "status": "active",
+#     "title": "Golf tonight",
+#     "current_invitee_id": 3,
+#     "created_at": "2025-09-18T08:31:28.589627",
+#     "creator_id": 1,
+#     "id": 1,
+#     "updated_at": "2025-09-18T08:31:28.601459"
+#   }
+# ]
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -189,7 +200,7 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     # Add invitees
     for invitee in event.invitees:
         user = db.query(User).filter(User.username == invitee.user_name).first()
-        print("I am the user\n",user)
+        print("I am the invited friend, this is my user id >",user.id)
         if not user:
             db.rollback()
             raise HTTPException(status_code=404, detail=f"Invitee  {invitee.user_name} not found")
