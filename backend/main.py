@@ -44,6 +44,7 @@ class Event(Base):
     title = Column(String)
     creator_id = Column(Integer, ForeignKey("users.id"))
     status = Column(SAEnum(EventStatus, native_enum=False), default=EventStatus.pending)
+    #just thinking that current_invitee_id should maybe replaced with all invitee_id
     current_invitee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -237,7 +238,7 @@ async def respond_to_event(
         EventInvitee.event_id == event_id,
         EventInvitee.invitee_id == event.current_invitee_id
     ).first()
-    print("current invitee= ",current_invitee)
+    print("current invitee= ",current_invitee.invitee_id)
     if not current_invitee:
         raise HTTPException(status_code=400, detail="No active invitee")
     
@@ -251,24 +252,24 @@ async def respond_to_event(
         print("this is the event.status",event.status)
         return {"message": "Event accepted!"}
     
-    elif response.status == "declined":
-        next_invitee = db.query(EventInvitee).filter(
-            EventInvitee.event_id == event_id,
-            EventInvitee.status == InviteStatus.pending
-        ).order_by(EventInvitee.priority.asc()).first()
+    # elif response.status == "declined":
+    #     next_invitee = db.query(EventInvitee).filter(
+    #         EventInvitee.event_id == event_id,
+    #         EventInvitee.status == InviteStatus.pending
+    #     ).order_by(EventInvitee.priority.asc()).first()
         
-        if next_invitee:
-            next_invitee.status = InviteStatus.invited
-            next_invitee.invited_at = datetime.utcnow()
-            event.current_invitee_id = next_invitee.invitee_id
-            event.status = EventStatus.active
-            db.commit()
-            return {"message": "Declined—invitation forwarded to next priority"}
-        else:
-            event.status = EventStatus.cancelled
-            event.current_invitee_id = None
-            db.commit()
-            return {"message": "Declined—no more priorities available"}
+    #     if next_invitee:
+    #         next_invitee.status = InviteStatus.invited
+    #         next_invitee.invited_at = datetime.utcnow()
+    #         event.current_invitee_id = next_invitee.invitee_id
+    #         event.status = EventStatus.active
+    #         db.commit()
+    #         return {"message": "Declined—invitation forwarded to next priority"}
+    #     else:
+    #         event.status = EventStatus.cancelled
+    #         event.current_invitee_id = None
+    #         db.commit()
+    #         return {"message": "Declined—no more priorities available"}
     
     db.commit()
     return {"message": "Response recorded"}
