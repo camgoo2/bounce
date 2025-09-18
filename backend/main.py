@@ -184,13 +184,13 @@ async def health_check():
 # Endpoints
 @app.post("/events", response_model=EventResponse, status_code=201)
 async def create_event(event: EventCreate, db: Session = Depends(get_db)):
-    creator = db.query(User).filter(User.id == event.creator_id).first()
-    if not creator:
-        raise HTTPException(status_code=404, detail="Creator not found")
+    # creator = db.query(User).filter(User.id == event.creator_id).first()
+    # if not creator:
+    #     raise HTTPException(status_code=404, detail="Creator not found")
     
     db_event = Event(
         title=event.title,
-        creator_id=creator.id,
+        creator_id=event.creator_id,
         status=EventStatus.pending
     )
     db.add(db_event)
@@ -206,22 +206,22 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail=f"Invitee  {invitee.user_name} not found")
         
         print(f"  event_id: {db_event.id}")
-        print(f"  invitee_id: {user.id}")
+        print(f"  invitee_id aka friend : {user.id}")
         print(f"  priority: {invitee.priority}")
 
+        # Adding the friends  to the event
         db_invitee = EventInvitee(
             event_id=db_event.id,
             invitee_id=user.id,
             priority=invitee.priority
         )
+         
         db.add(db_invitee)
     
     db.commit()
     
     # Activate first priority
-    first_invitee = db.query(EventInvitee).filter(
-        EventInvitee.event_id == db_event.id
-    ).order_by(EventInvitee.priority.asc()).first()
+    first_invitee = db.query(EventInvitee).filter(EventInvitee.event_id == db_event.id).order_by(EventInvitee.priority.asc()).first()
     if first_invitee:
         first_invitee.status = InviteStatus.invited
         first_invitee.invited_at = datetime.utcnow()
@@ -231,6 +231,7 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
     
     db.refresh(db_event)
     
+    print(db_event)
     return db_event
 
 @app.post("/events/{event_id}/respond")
