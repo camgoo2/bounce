@@ -88,6 +88,7 @@ class EventResponse(BaseModel):
     status: EventStatus
     current_invitee_id: Optional[int]
     invitees: List[EventInviteeResponse]
+    message: str
 
     class Config:
         orm_mode = True
@@ -219,7 +220,7 @@ async def create_event(event: EventCreate, db: Session = Depends(get_db)):
         db.commit()
     
     db.refresh(db_event)
-    
+    db_event.message = "Event create successfully"
     print(db_event)
     return db_event
 
@@ -240,12 +241,12 @@ async def respond_to_event( event_id: int, invite_reply: InviteReplyRequest, db:
     if not current_invitee:
         raise HTTPException(status_code=400, detail="No active invitee")
     
-    current_invitee.status = InviteReplyStatus(invite_reply.status)
+    current_invitee.status = InviteReplyStatus(invite_reply.status) #invited->accepted or declined
     current_invitee.responded_at = datetime.utcnow()
     db.commit()
     
     if invite_reply.status == "accepted":
-        event.status = EventStatus.accepted
+        event.status = EventStatus.accepted #updates the event to accepted, which is what we want
         db.commit()
         print("this is the event.status",event.status)
         return {"message": "Event accepted!"}
@@ -272,13 +273,6 @@ async def respond_to_event( event_id: int, invite_reply: InviteReplyRequest, db:
     db.commit()
     return {"message": "Response recorded"}
 
-@app.get("/events/{event_id}", response_model=EventResponse)
-async def get_event(event_id: int, db: Session = Depends(get_db)):
-    event = db.query(Event).filter(Event.id == event_id).first()
-    print("this is the event id",event.id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return event
 
 @app.post("/users", response_model=UserResponse, status_code=201)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
