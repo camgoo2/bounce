@@ -322,6 +322,7 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
         # (pending status AND not their turn AND event is in any non-pending state)
         if (invitation.status == InviteReplyStatus.pending and 
             invitation.event.current_invitee_id != user_id):
+            # with continue is activated we get taken back to the start of the loop for the next invitation.
             continue  # Don't show this invitation at all
         
         invitation_data = MyInvitationResponse(
@@ -332,7 +333,7 @@ async def get_user_invitations(user_id: int, db: Session = Depends(get_db)):
                 status=invitation.event.status
             ),
             my_priority=invitation.priority,
-            my_status=invitation.status,
+            my_status=invitation.status, 
             invited_at=invitation.invited_at,
             responded_at=invitation.responded_at,
             is_current_invitee=(invitation.event.current_invitee_id == user_id)
