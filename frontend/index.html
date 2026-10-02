@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bounce - Create Event</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .invitees-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .invitee-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .invitee-item input[type="text"] {
+            flex: 1;
+        }
+
+        .invitee-item input[type="number"] {
+            width: 100px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-remove {
+            background: #ff4757;
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-remove:hover {
+            background: #ee5a6f;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .small-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 Bounce</h1>
+        <p class="subtitle">Create a priority-based event invitation</p>
+
+        <form id="eventForm">
+            <div class="form-group">
+                <label for="creator">Your Username</label>
+                <input type="text" id="creator" placeholder="e.g., cameron" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Event Message</label>
+                <textarea id="message" placeholder="e.g., Golf Saturday 3:00pm, Beverley Park Golf course, whose keen" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="timeout">Timeout (minutes)</label>
+                <input type="number" id="timeout" value="15" min="1" required>
+                <p class="small-text">How long each person has to respond before it moves to the next priority</p>
+            </div>
+
+            <div class="invitees-section">
+                <label>Invitees (in priority order)</label>
+                <p class="small-text" style="margin-bottom: 15px;">Priority 1 = first person to receive invitation</p>
+
+                <div id="inviteesList">
+                    <div class="invitee-item">
+                        <input type="text" placeholder="Username (e.g., paul)" required>
+                        <input type="number" value="1" min="1" placeholder="Priority" required>
+                        <button type="button" class="btn btn-remove" onclick="removeInvitee(this)">Remove</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-secondary" onclick="addInvitee()" style="margin-top: 10px;">+ Add Invitee</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Event</button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let inviteeCount = 1;
+
+        function addInvitee() {
+            inviteeCount++;
+            const inviteesList = document.getElementById('inviteesList');
+            const newInvitee = document.createElement('div');
+            newInvitee.className = 'invitee-item';
+            newInvitee.innerHTML = `
+                <input type="text" placeholder="Username (e.g., sarah)" required>
+                <input type="number" value="${inviteeCount}" min="1" placeholder="Priority" required>
+                <button type="button" class="btn btn-remove" onclick="removeInvitee(this)">Remove</button>
+            `;
+            inviteesList.appendChild(newInvitee);
+        }
+
+        function removeInvitee(button) {
+            const inviteesList = document.getElementById('inviteesList');
+            if (inviteesList.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert('You need at least one invitee!');
+            }
+        }
+
+        async function getUserId(username) {
+            try {
+                const response = await fetch(`${API_BASE}/users/${username}`);
+                if (response.ok) {
+                    const user = await response.json();
+                    return user.id;
+                }
+                return null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'none';
+
+            const creatorUsername = document.getElementById('creator').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const timeout = parseInt(document.getElementById('timeout').value);
+
+            // Get creator ID
+            const creatorId = await getUserId(creatorUsername);
+            if (!creatorId) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> User "${creatorUsername}" not found. Please create the user first.`;
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            // Get invitees
+            const inviteeItems = document.querySelectorAll('.invitee-item');
+            const invitees = [];
+
+            for (const item of inviteeItems) {
+                const username = item.querySelector('input[type="text"]').value.trim();
+                const priority = parseInt(item.querySelector('input[type="number"]').value);
+
+                if (username) {
+                    invitees.push({
+                        user_name: username,
+                        priority: priority
+                    });
+                }
+            }
+
+            if (invitees.length === 0) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>Error:</strong> Please add at least one invitee.';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            // Create event
+            try {
+                const response = await fetch(`${API_BASE}/events`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: message,
+                        creator_id: creatorId,
+                        timeout_minutes: timeout,
+                        invitees: invitees
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Success!</strong> Event created.<br>
+                        <strong>Event ID:</strong> ${data.id}<br>
+                        <strong>Status:</strong> ${data.status}<br>
+                        <strong>Current Invitee ID:</strong> ${data.current_invitee_id || 'None'}<br>
+                        <strong>Timeout:</strong> ${data.timeout_minutes} minutes<br>
+                        <em>${data.message}</em>
+                    `;
+
+                    // Clear form
+                    document.getElementById('eventForm').reset();
+                    document.getElementById('inviteesList').innerHTML = `
+                        <div class="invitee-item">
+                            <input type="text" placeholder="Username (e.g., paul)" required>
+                            <input type="number" value="1" min="1" placeholder="Priority" required>
+                            <button type="button" class="btn btn-remove" onclick="removeInvitee(this)">Remove</button>
+                        </div>
+                    `;
+                    inviteeCount = 1;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Failed to create event'}`;
+                }
+
+                resultDiv.style.display = 'block';
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> Could not connect to server. Make sure the backend is running on ${API_BASE}`;
+                resultDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
